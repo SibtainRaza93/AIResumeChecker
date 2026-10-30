@@ -11,7 +11,9 @@ const {notFound, errorHandler} = require("./src/middleware/errorHandler");
 const dns = require("dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
-const healthRouter = require("./src/routes/health")
+//APIS
+const healthRouter = require("./src/routes/health");
+const authRouter = require("./src/routes/auth.router");
 
 const app = express();
 
@@ -28,7 +30,10 @@ app.use(express.urlencoded({ extended: true, limit: "1mb"}));
 app.use(cookieParse());
 if(!env.isProd) app.use(morgan("dev"));
 
+
+//APIS 
 app.use("/api/health", healthRouter);
+app.use("/api/auth", authRouter);
 
 app.use(notFound)
 app.use(errorHandler)
