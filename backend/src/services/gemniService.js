@@ -144,6 +144,29 @@ async function analyzeResume({ rawText, targetRole }) {
   }
 
   const prompt = buildPrompt({ rawText, targetRole });
+  async function callGemini(prompt) {
+    const result = await ai.models.generateContent({
+        model: env.geminiModel,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+            responseMimeType: "application/json",
+            responseSchema,
+            temperature: 0.2,
+        },
+    });
+
+    const text =
+        typeof result.text === "function" ? result.text() : result.text;
+
+    if (!text?.trim()) {
+        throw new Error("Gemini returned an empty response");
+    }
+
+    return {
+        text,
+        usage: result.usageMetadata || {},
+    };
+}
 
   let lastErr;
   for (let attempt = 1; attempt <= 2; attempt++) {
