@@ -12,7 +12,7 @@ const basicsSchema = new mongoose.Schema(
         location: String,
         email: String,
         phone: String,
-        link: [linkSchema],
+        links: [linkSchema],
     },
     { _id: false},
 );

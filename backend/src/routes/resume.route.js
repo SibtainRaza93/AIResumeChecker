@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
-const { requireAuth } = require("../middleware/auth");
+const { requireAuth } = require("../middleware/auth.middleware");
 const { validate } = require("../middleware/validate");
 const { uploadPdf } = require("../middleware/upload.middleware");
 
