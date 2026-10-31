@@ -253,6 +253,67 @@ function looksEmpty(sections) {
   return !hasIdentity && !hasBody;
 }
 
+// router.post(
+//   "/:id/rewrite",
+//   validate(idParam, "params"),
+//   validate(rewriteBody),
+//   asyncHandler(async (req, res) => {
+//     const resume = await loadOwnedResume(req);
+
+//     const analysis = await Analysis.findOne({
+//       _id: req.body.analysisId,
+//       resumeId: resume._id,
+//     });
+//     if (!analysis) throw ApiError.notFound("Analysis not found");
+
+//     const baseVersion = await loadVersion(resume._id, analysis.versionId);
+
+//     const selected = req.body.rewriteIds?.length
+//       ? analysis.bulletRewrites.filter((r) =>
+//           req.body.rewriteIds.includes(r._id.toString())
+//         )
+//       : analysis.bulletRewrites;
+
+//     if (!selected.length) {
+//       throw ApiError.badRequest("No rewrites selected to apply");
+//     }
+
+//     const newRaw = applyRewritesToText(baseVersion.rawText, selected);
+
+//     // Safety net: pre-build a structured copy from the base version with the
+//     // chosen bullets swapped in, so V2 never lands with empty sections even if
+//     // Gemini's re-parse fails.
+//     const patchedFromBase = patchBulletsInSections(
+//       baseVersion.parsedSections,
+//       selected
+//     );
+//     const reparsed = await parseStructured(newRaw);
+//     const finalParsed = looksEmpty(reparsed) ? patchedFromBase : reparsed;
+
+//     const nextNumber = resume.latestVersionNumber + 1;
+
+//     const newVersion = await ResumeVersion.create({
+//       resumeId: resume._id,
+//       versionNumber: nextNumber,
+//       label: req.body.label?.trim() || `V${nextNumber}`,
+//       rawText: newRaw,
+//       parsedSections: finalParsed,
+//       sourceType: "rewrite",
+//       parentVersionId: baseVersion._id,
+//     });
+
+//     resume.latestVersionNumber = nextNumber;
+//     resume.currentVersionId = newVersion._id;
+//     await resume.save();
+
+//     res.status(201).json({
+//       version: newVersion,
+//       appliedCount: selected.length,
+//     });
+//   })
+// );
+
+
 router.post(
   "/:id/rewrite",
   validate(idParam, "params"),
@@ -279,10 +340,6 @@ router.post(
     }
 
     const newRaw = applyRewritesToText(baseVersion.rawText, selected);
-
-    // Safety net: pre-build a structured copy from the base version with the
-    // chosen bullets swapped in, so V2 never lands with empty sections even if
-    // Gemini's re-parse fails.
     const patchedFromBase = patchBulletsInSections(
       baseVersion.parsedSections,
       selected
@@ -302,12 +359,46 @@ router.post(
       parentVersionId: baseVersion._id,
     });
 
+    // NEW: Analyze the rewritten resume version.
+    const {
+      analysis: newAnalysisData,
+      model,
+      promptTokens,
+      responseTokens,
+    } = await analyzeResume({
+      rawText: newRaw,
+      targetRole: analysis.targetRole,
+    });
+
+    // NEW: Save the analysis for V2.
+    const savedAnalysis = await Analysis.create({
+      userId: req.user._id,
+      resumeId: resume._id,
+      versionId: newVersion._id,
+      atsScore: newAnalysisData.atsScore,
+      scoreBreakdown: newAnalysisData.scoreBreakdown,
+      issues: newAnalysisData.issues,
+      strengths: newAnalysisData.strengths,
+      bulletRewrites: newAnalysisData.bulletRewrites,
+      keywordsPresent: newAnalysisData.keywordsPresent,
+      keywordsMissing: newAnalysisData.keywordsMissing,
+      summary: newAnalysisData.summary,
+      model,
+      promptTokens,
+      responseTokens,
+    });
+
+    // NEW: Connect V2 to its analysis.
+    newVersion.latestAnalysisId = savedAnalysis._id;
+    await newVersion.save();
+
     resume.latestVersionNumber = nextNumber;
     resume.currentVersionId = newVersion._id;
     await resume.save();
 
     res.status(201).json({
       version: newVersion,
+      analysis: savedAnalysis,
       appliedCount: selected.length,
     });
   })

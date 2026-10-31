@@ -1,7 +1,7 @@
 const express = require("express");
 
 const asyncHandler = require("../utils/asyncHandler");
-const { requireAuth } = require("../middleware/auth");
+const { requireAuth } = require("../middleware/auth.middleware");
 
 const Resume = require("../models/Resume");
 const ResumeVersion = require("../models/ResumeVersion");

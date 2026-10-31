@@ -1,7 +1,7 @@
 const diff = require("diff")
 
 function diffText(oldText, newText, mode = "words") {
-  const fn = mode === "lines" ? Diff.diffLines : Diff.diffWordsWithSpace;
+  const fn = mode === "lines" ? diff.diffLines : diff.diffWordsWithSpace;
   const parts = fn(oldText || "", newText || "");
   return parts.map((p) => ({
     value: p.value,
