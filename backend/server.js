@@ -15,6 +15,10 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 const healthRouter = require("./src/routes/health");
 const authRouter = require("./src/routes/auth.route");
 const resumeRouter = require("./src/routes/resume.route");
+const dashboardRouter = require("./src/routes/dashboard.route")
+const insightsRouter = require("./src/routes/insights.route")
+const versionsRouter = require("./src/routes/versions.route")
+const historyRouter = require("./src/routes/history.route")
 
 const app = express();
 
@@ -36,6 +40,11 @@ if(!env.isProd) app.use(morgan("dev"));
 app.use("/api/health", healthRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/resumes", resumeRouter);
+app.use("/api/dashboard", dashboardRouter)
+app.use("/api/insights", insightsRouter)
+app.use("/api/versions", versionsRouter)
+app.use("/api/history", historyRouter)
+
 
 app.use(notFound)
 app.use(errorHandler)
