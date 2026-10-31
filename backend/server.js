@@ -13,7 +13,8 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 //APIS
 const healthRouter = require("./src/routes/health");
-const authRouter = require("./src/routes/auth.router");
+const authRouter = require("./src/routes/auth.route");
+const resumeRouter = require("./src/routes/resume.route");
 
 const app = express();
 
@@ -34,6 +35,7 @@ if(!env.isProd) app.use(morgan("dev"));
 //APIS 
 app.use("/api/health", healthRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/resumes", resumeRouter);
 
 app.use(notFound)
 app.use(errorHandler)
