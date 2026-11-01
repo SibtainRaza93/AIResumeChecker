@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const apiClient = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_URL || "/api",
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
@@ -13,6 +13,7 @@ apiClient.interceptors.response.use(
       err.response?.data?.error?.message ||
       err.message ||
       "Request failed";
+
     return Promise.reject({
       status: err.response?.status,
       message,
@@ -21,6 +22,3 @@ apiClient.interceptors.response.use(
     });
   }
 );
-
-// Placeholder so existing imports from "./client" don't break while mocked.
-
