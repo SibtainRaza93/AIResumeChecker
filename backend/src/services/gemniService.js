@@ -116,6 +116,27 @@ const analysisValidator = z.object({
 });
 
 
+// function buildPrompt({ rawText, targetRole }) {
+//   return [
+//     "You are a senior technical recruiter and ATS expert reviewing a resume.",
+//     targetRole
+//       ? `Target role: ${targetRole}.`
+//       : "No specific target role was provided - assess for the role the candidate appears to be aiming for.",
+//     "",
+//     "Score the resume from 0-100 based on ATS readiness (keyword match, parseable formatting, quantified impact, clarity).",
+//     "Return exactly 5 prioritized issues, 5 standout strengths, and 5-10 weak bullets rewritten to be stronger, quantified, and ATS-friendly.",
+//     "Rewrites must preserve the original meaning. Each rewrite needs a one-line rationale.",
+//     "Identify keywords clearly present and notable keywords missing for the apparent target role.",
+//     "Be specific and evidence-based - cite phrasing from the resume in explanations.",
+//     "",
+//     "RESUME TEXT:",
+//     "----------",
+//     rawText,
+//     "----------",
+//   ].join("\n");
+// }
+
+
 function buildPrompt({ rawText, targetRole }) {
   return [
     "You are a senior technical recruiter and ATS expert reviewing a resume.",
@@ -124,10 +145,21 @@ function buildPrompt({ rawText, targetRole }) {
       : "No specific target role was provided - assess for the role the candidate appears to be aiming for.",
     "",
     "Score the resume from 0-100 based on ATS readiness (keyword match, parseable formatting, quantified impact, clarity).",
-    "Return exactly 5 prioritized issues, 5 standout strengths, and 5-10 weak bullets rewritten to be stronger, quantified, and ATS-friendly.",
+    "Return exactly 5 prioritized issues, 5 standout strengths, and 5-10 weak bullets rewritten to be stronger and ATS-friendly.",
     "Rewrites must preserve the original meaning. Each rewrite needs a one-line rationale.",
     "Identify keywords clearly present and notable keywords missing for the apparent target role.",
     "Be specific and evidence-based - cite phrasing from the resume in explanations.",
+    "",
+    "STRICT FACTUAL ACCURACY RULES:",
+    "- Never invent numbers, percentages, metrics, achievements, or outcomes.",
+    "- Never invent tools, technologies, responsibilities, or projects.",
+    "- Preserve the exact factual meaning of every original bullet.",
+    "- Only use metrics explicitly present in the original resume.",
+    "- Never convert learning or training into completed professional achievements.",
+    "- Never claim performance improvements without supporting evidence.",
+    "- Do not exaggerate the candidate's experience or seniority.",
+    "- Improve grammar, clarity, and action verbs without changing facts.",
+    "- If a bullet cannot be safely improved, provide a conservative rewrite.",
     "",
     "RESUME TEXT:",
     "----------",
@@ -135,6 +167,7 @@ function buildPrompt({ rawText, targetRole }) {
     "----------",
   ].join("\n");
 }
+
 
 async function analyzeResume({ rawText, targetRole }) {
   if (!ai) {
